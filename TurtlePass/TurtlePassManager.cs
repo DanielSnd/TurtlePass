@@ -59,11 +59,19 @@ public class TurtlePassManager : MonoBehaviour
         InstanceFinder.ServerManager.UnregisterBroadcast<TurtlePassPieceBroadcast>(OnTurtlePassServerBroadcast);
     }
     
+#if FISHNET_V4
+    private void OnTurtlePassServerBroadcast(NetworkConnection conn, TurtlePassPieceBroadcast msg, Channel cannel) {
+#else
     private void OnTurtlePassServerBroadcast(NetworkConnection conn, TurtlePassPieceBroadcast msg) {
+#endif
         ReceiveTurtlePass(msg);
     }
 
+#if FISHNET_V4
+    private void OnTurtlePassClientBroadcast(TurtlePassPieceBroadcast msg, Channel channel)
+#else
     private void OnTurtlePassClientBroadcast(TurtlePassPieceBroadcast msg)
+#endif
     {
         ReceiveTurtlePass(msg);
     }
@@ -119,7 +127,11 @@ public class TurtlePassManager : MonoBehaviour
 
                 if (currentlyProcessing.sendingToServer)
                 {
+#if FISHNET_V4                    
+                    if (InstanceFinder.IsServerStarted) OnTurtlePassServerBroadcast(InstanceFinder.IsClientStarted ? InstanceFinder.ClientManager.Connection : default, newBroadcast, Channel.Reliable);
+#else
                     if (InstanceFinder.IsServer) OnTurtlePassServerBroadcast(InstanceFinder.IsClient ? InstanceFinder.ClientManager.Connection : default, newBroadcast);
+#endif
                     else InstanceFinder.ClientManager.Broadcast(newBroadcast);
                 }
                 else
